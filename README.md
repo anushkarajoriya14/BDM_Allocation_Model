@@ -1,2 +1,0 @@
-# BDM_Allocation_Model
-BDM_Allocation_Model
