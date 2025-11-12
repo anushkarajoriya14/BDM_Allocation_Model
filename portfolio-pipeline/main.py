@@ -10,14 +10,20 @@ import os
 import sys
 import subprocess
 
+import os
+import sys
+import subprocess
+
 def setup_ipopt_for_colab():
     """
     Automatically installs and configures IPOPT for Pyomo on Google Colab or local environments.
     """
     ipopt_path = "/content/bin/ipopt"
 
-    # If running in Google Colab
-    if "google.colab" in sys.modules:
+    # Check both Colab runtime and file existence
+    in_colab = "google.colab" in sys.modules or "COLAB_RELEASE_TAG" in os.environ
+
+    if in_colab:
         if not os.path.exists(ipopt_path):
             print("Installing IDAES and IPOPT solver for Colab environment...")
             subprocess.run(["pip", "install", "idaes-pse", "--pre"], check=True)
@@ -28,6 +34,7 @@ def setup_ipopt_for_colab():
         print("Non-Colab environment detected — ensure IPOPT is installed locally.")
 
     return ipopt_path
+
 
 
 #Two seperate functions for calculation of monthly returns and optimization
