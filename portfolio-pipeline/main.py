@@ -6,6 +6,30 @@ import yfinance as yf
 from pyomo.environ import *
 from pyomo.opt import SolverFactory, TerminationCondition
 
+import os
+import sys
+import subprocess
+
+def setup_ipopt_for_colab():
+    """
+    Automatically installs and configures IPOPT for Pyomo on Google Colab or local environments.
+    """
+    ipopt_path = "/content/bin/ipopt"
+
+    # If running in Google Colab
+    if "google.colab" in sys.modules:
+        if not os.path.exists(ipopt_path):
+            print("Installing IDAES and IPOPT solver for Colab environment...")
+            subprocess.run(["pip", "install", "idaes-pse", "--pre"], check=True)
+            subprocess.run(["idaes", "get-extensions", "--to", "./bin"], check=True)
+        else:
+            print("IPOPT solver already installed.")
+    else:
+        print("Non-Colab environment detected — ensure IPOPT is installed locally.")
+
+    return ipopt_path
+
+
 #Two seperate functions for calculation of monthly returns and optimization
 
 tickers_list = ['AES','LNT','AEE','AEP','AWK','APD','ALB','AMCR','AVY','BALL','ALL', 'AON', 'CPAY', 'EG', 'IVZ']
@@ -206,7 +230,7 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
 
 print("Finished defining `optimize_and_plot_portfolio` function.")
 
-ipopt_executable = '/content/bin/ipopt'
+ipopt_executable = setup_ipopt_for_colab()
 
 # Call the prepare_returns_data function
 # Make sure 'mydata (1).csv' is available in the environment
@@ -405,7 +429,7 @@ print("Defined `perform_full_portfolio_analysis` function.")
 my_tickers = ['GE','KO','NVDA']
 my_start_date = '2020-01-01'
 my_end_date = '2024-01-01'
-my_ipopt_executable = '/content/bin/ipopt'
+my_ipopt_executable = setup_ipopt_for_colab()
 
 # Import display from IPython.display for rich output
 from IPython.display import display
