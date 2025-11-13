@@ -189,7 +189,7 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
 
 print("Finished defining `optimize_and_plot_portfolio` function.")
 
-ipopt_executable = setup_ipopt_for_colab()
+ipopt_executable = "/content/bin/ipopt"
 df_returns = calculate_monthly_returns(tickers_list, start, end)
 
 if df_returns is not None:
@@ -242,7 +242,7 @@ print("Defined `perform_full_portfolio_analysis` function.")
 my_tickers = ['GE','KO','NVDA']
 my_start_date = '2020-01-01'
 my_end_date = '2024-01-01'
-my_ipopt_executable = setup_ipopt_for_colab()
+my_ipopt_executable = ipopt_executable
 
 from IPython.display import display
 final_df_results, final_df_allocations = perform_full_portfolio_analysis(
