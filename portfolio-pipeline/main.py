@@ -10,6 +10,10 @@ import os
 import sys
 import subprocess
 
+import matplotlib.pyplot as plt
+plt.ion()  # Turns on interactive mode
+
+
 # def setup_ipopt_for_colab():
 #     """
 #     Automatically installs and configures IPOPT for Pyomo on Google Colab or local environments.
