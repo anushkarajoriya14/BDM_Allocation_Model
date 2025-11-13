@@ -126,7 +126,10 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
 
     print("Pyomo model initialized with sets, variables, parameters, objective, and budget constraint.")
 
-    solver = SolverFactory("ipopt", executable=ipopt_executable)
+    solver = SolverFactory("ipopt")
+    if not solver.available():
+        solver = SolverFactory("ipopt", executable="/content/bin/ipopt")
+
 
     max_possible_variance = np.max(np.diag(cov_df.values))
     max_risk_for_range = max_possible_variance * 1.5
