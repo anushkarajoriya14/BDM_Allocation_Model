@@ -13,35 +13,47 @@ import subprocess
 def setup_ipopt_for_colab():
     """
     Automatically installs and configures IPOPT for Pyomo on Google Colab or local environments.
-    Ensures the solver is executable and on PATH.
+    Detects where IPOPT was installed by IDAES and makes it executable.
     """
-    ipopt_path = "/content/bin/ipopt"
+    import glob
 
-    # Detect Colab environment
+    ipopt_path = "/content/bin/ipopt"
     in_colab = "google.colab" in sys.modules or "COLAB_RELEASE_TAG" in os.environ
 
     if in_colab:
-        # Install IDAES and IPOPT if not already present
-        if not os.path.exists(ipopt_path):
-            print("Installing IDAES and IPOPT solver for Colab environment...")
-            subprocess.run(["pip", "install", "idaes-pse", "--pre", "-q"], check=True)
-            subprocess.run(["idaes", "get-extensions", "--to", "./bin"], check=True)
-        else:
-            print("IPOPT solver already installed.")
+        print("Running in Colab environment — setting up IPOPT...")
 
-        # ✅ FIX: Make IPOPT executable and ensure it's in PATH
+        # Install IDAES and IPOPT
+        subprocess.run(["pip", "install", "idaes-pse", "--pre", "-q"], check=True)
+        subprocess.run(["idaes", "get-extensions", "--to", "./bin"], check=True)
+
+        # ✅ Try to automatically detect the correct IPOPT path
+        ipopt_candidates = glob.glob("/content/bin/ipopt*")
+        if ipopt_candidates:
+            ipopt_path = ipopt_candidates[0]
+            print(f"Detected IPOPT binary at: {ipopt_path}")
+        else:
+            print("Could not detect IPOPT in /content/bin. Checking deeper...")
+            ipopt_candidates = glob.glob("/usr/local/lib*/idaes/bin/ipopt*")
+            if ipopt_candidates:
+                ipopt_path = ipopt_candidates[0]
+                print(f"Found IPOPT at: {ipopt_path}")
+            else:
+                print("⚠️ IPOPT binary still not found — falling back to default path.")
+
+        # ✅ Fix permissions and PATH
         if os.path.exists(ipopt_path):
             subprocess.run(["chmod", "+x", ipopt_path], check=True)
-            os.environ["PATH"] += os.pathsep + "/content/bin"
-            print("IPOPT permissions fixed and PATH updated.")
-            # Optional check
-            subprocess.run(["ipopt", "--version"], check=False)
+            os.environ["PATH"] += os.pathsep + os.path.dirname(ipopt_path)
+            print(f"IPOPT permissions fixed. PATH updated with {os.path.dirname(ipopt_path)}")
+            subprocess.run([ipopt_path, "--version"], check=False)
         else:
-            print("Warning: IPOPT not found even after installation.")
+            print("⚠️ IPOPT not found even after searching. Optimization may fail.")
     else:
         print("Non-Colab environment detected — ensure IPOPT is installed locally.")
 
     return ipopt_path
+
 
 
 # ------------------------------------------------------------
