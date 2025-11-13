@@ -96,3 +96,12 @@ plots/
 *.~lock.*
 ehthumbs.db
 Icon?
+
+__pycache__/
+.ipynb_checkpoints/
+bin/
+*.pyc
+*.pyo
+*.pyd
+.idea/
+.vscode/
