@@ -1,0 +1,98 @@
+# ==========================================================
+#  General Git Ignore File for Portfolio Optimization Project
+#  Environment: Google Colab / Python / Pyomo / IDAES / yFinance
+# ==========================================================
+
+# --- Python cache & compiled files ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+
+# --- Build, distribution & packaging ---
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# --- Jupyter / Colab related ---
+.ipynb_checkpoints/
+*.ipynb_save
+*.ipynb_cache
+.colab/
+
+# --- Data files (optional) ---
+# Comment this out if you want to keep sample datasets in Git
+*.csv
+*.xlsx
+*.xls
+*.parquet
+*.h5
+*.json
+
+# --- Logs and temporary files ---
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# --- System & OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Solver binaries and IDAES extensions ---
+# These get downloaded at runtime in Colab or locally.
+# Keep setup code in main.py but skip the binaries.
+bin/
+idaes_extensions/
+idaes/
+lib/
+include/
+opt/
+usr/
+content/bin/
+content/idaes/
+content/lib/
+
+# --- IDE & editor specific ---
+.vscode/
+.idea/
+*.code-workspace
+
+# --- Cache files ---
+*.cache/
+.cache/
+__pypackages__/
+.mypy_cache/
+.pytest_cache/
+coverage.xml
+*.coverage
+htmlcov/
+
+# --- Project-specific ---
+# BDM Allocation Model artifacts
+BDM_Allocation_Model/__pycache__/
+BDM_Allocation_Model/**/*.log
+BDM_Allocation_Model/**/*.tmp
+
+# --- Checkpointed outputs from Colab runs ---
+*.out
+*.err
+output/
+results/
+plots/
+
+# --- Mac/Unix hidden files ---
+*.~lock.*
+ehthumbs.db
+Icon?
