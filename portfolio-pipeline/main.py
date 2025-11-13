@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yfinance as yf
@@ -10,68 +11,29 @@ import os
 import sys
 import subprocess
 
-import matplotlib.pyplot as plt
-plt.ion()  # Turns on interactive mode
+# ------------------------------------------------------------
+# Ensure plots render correctly in Colab
+# ------------------------------------------------------------
+in_colab = "google.colab" in sys.modules
+if in_colab:
+    print("Running in Colab — setting matplotlib to inline backend")
+    matplotlib.use('module://matplotlib_inline.backend_inline')
 
+plt.ion()  # Enable interactive mode
 
-# def setup_ipopt_for_colab():
-#     """
-#     Automatically installs and configures IPOPT for Pyomo on Google Colab or local environments.
-#     Detects where IPOPT was installed by IDAES and makes it executable.
-#     """
-#     import glob
+from IPython.display import display
 
-#     ipopt_path = "/content/bin/ipopt"
-#     in_colab = "google.colab" in sys.modules or "COLAB_RELEASE_TAG" in os.environ
-
-#     if in_colab:
-#         print("Running in Colab environment — setting up IPOPT...")
-
-#         # Install IDAES and IPOPT
-#         subprocess.run(["pip", "install", "idaes-pse", "--pre", "-q"], check=True)
-#         subprocess.run(["idaes", "get-extensions", "--to", "./bin"], check=True)
-
-#         # ✅ Try to automatically detect the correct IPOPT path
-#         ipopt_candidates = glob.glob("/content/bin/ipopt*")
-#         if ipopt_candidates:
-#             ipopt_path = ipopt_candidates[0]
-#             print(f"Detected IPOPT binary at: {ipopt_path}")
-#         else:
-#             print("Could not detect IPOPT in /content/bin. Checking deeper...")
-#             ipopt_candidates = glob.glob("/usr/local/lib*/idaes/bin/ipopt*")
-#             if ipopt_candidates:
-#                 ipopt_path = ipopt_candidates[0]
-#                 print(f"Found IPOPT at: {ipopt_path}")
-#             else:
-#                 print("⚠️ IPOPT binary still not found — falling back to default path.")
-
-#         # ✅ Fix permissions and PATH
-#         if os.path.exists(ipopt_path):
-#             subprocess.run(["chmod", "+x", ipopt_path], check=True)
-#             os.environ["PATH"] += os.pathsep + os.path.dirname(ipopt_path)
-#             print(f"IPOPT permissions fixed. PATH updated with {os.path.dirname(ipopt_path)}")
-#             subprocess.run([ipopt_path, "--version"], check=False)
-#         else:
-#             print("⚠️ IPOPT not found even after searching. Optimization may fail.")
-#     else:
-#         print("Non-Colab environment detected — ensure IPOPT is installed locally.")
-
-#     return ipopt_path
-
-
+# ------------------------------------------------------------
+# List of tickers and date range
+# ------------------------------------------------------------
+tickers_list = ['AES','LNT','AEE','AEP','AWK','APD','ALB','AMCR','AVY','BALL','ALL', 'AON', 'CPAY', 'EG', 'IVZ']
+start = '2022-01-01'
+end = '2024-01-01'
 
 # ------------------------------------------------------------
 # Function to calculate monthly returns
 # ------------------------------------------------------------
-tickers_list = ['AES','LNT','AEE','AEP','AWK','APD','ALB','AMCR','AVY','BALL','ALL', 'AON', 'CPAY', 'EG', 'IVZ']
-
-start = '2022-01-01'
-end = '2024-01-01'
-
 def calculate_monthly_returns(tickers_list, start_date, end_date):
-    """
-    Downloads daily stock data, calculates daily and monthly returns.
-    """
     dow_prices = {}
     for t in tickers_list:
         try:
@@ -84,7 +46,7 @@ def calculate_monthly_returns(tickers_list, start_date, end_date):
             print(f'Failed {t}: {e}')
 
     if not dow_prices:
-        print("No stock data was downloaded. Please check the ticker symbols and date range.")
+        print("No stock data was downloaded. Please check tickers and dates.")
         return None
 
     return_data_dict = {}
@@ -95,21 +57,17 @@ def calculate_monthly_returns(tickers_list, start_date, end_date):
                 return_data_dict[ticker] = returns
 
     if not return_data_dict:
-        print("No valid stock data available after calculating daily returns.")
+        print("No valid stock data available after calculating returns.")
         return None
 
     daily_returns = pd.concat(return_data_dict.values(), axis=1, keys=return_data_dict.keys())
     monthly_returns = (1 + daily_returns).resample('ME').prod() - 1
     return monthly_returns.dropna()
 
-
 # ------------------------------------------------------------
 # Optimization and plotting
 # ------------------------------------------------------------
 def optimize_and_plot_portfolio(df_returns, ipopt_executable):
-    from pyomo.environ import ConcreteModel, Set, Var, NonNegativeReals, Param, Objective, maximize, Constraint
-    from pyomo.opt import SolverFactory, TerminationCondition
-
     m = ConcreteModel()
     assets = df_returns.columns.tolist()
     m.Assets = Set(initialize=assets)
@@ -130,10 +88,10 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
 
     print("Pyomo model initialized with sets, variables, parameters, objective, and budget constraint.")
 
+    # Setup IPOPT solver
     solver = SolverFactory("ipopt")
     if not solver.available():
-        solver = SolverFactory("ipopt", executable="/content/bin/ipopt")
-
+        solver = SolverFactory("ipopt", executable=ipopt_executable)
 
     max_possible_variance = np.max(np.diag(cov_df.values))
     max_risk_for_range = max_possible_variance * 1.5
@@ -167,18 +125,21 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     df_results = pd.DataFrame({'Risk': list(returns.keys()), 'Return': list(returns.values())})
     df_results = df_results.sort_values(by='Risk')
 
+    # Efficient frontier plot
     plt.figure(figsize=(10,6))
     plt.plot(df_results['Risk'], df_results['Return'], marker='o', linestyle='-')
     plt.title("Efficient Frontier")
     plt.xlabel("Portfolio Risk (Variance)")
     plt.ylabel("Expected Return")
     plt.grid(True)
-    plt.show()
+    display(plt.gcf())
+    plt.close()
 
     df_allocations = pd.DataFrame(param_analysis).T
     df_allocations.columns = assets
     df_allocations['Risk'] = df_allocations.index
 
+    # Asset allocation plot
     plt.figure(figsize=(12, 6))
     for asset in assets:
         plt.plot(df_allocations['Risk'], df_allocations[asset], label=str(asset), marker='o', markersize=4)
@@ -188,26 +149,16 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     plt.legend(title="Asset", bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True)
     plt.tight_layout()
-    plt.show()
+    display(plt.gcf())
+    plt.close()
 
     print("Portfolio optimization and plotting complete.")
     return df_results, df_allocations
 
-
 print("Finished defining `optimize_and_plot_portfolio` function.")
 
-ipopt_executable = "/content/bin/ipopt"
-df_returns = calculate_monthly_returns(tickers_list, start, end)
-
-if df_returns is not None:
-    df_results, df_allocations = optimize_and_plot_portfolio(df_returns, ipopt_executable)
-    print("Functions called successfully and plots generated.")
-else:
-    print("No valid return data available; skipping optimization.")
-
-
 # ------------------------------------------------------------
-# One concise function for full workflow
+# Perform full portfolio analysis
 # ------------------------------------------------------------
 def perform_full_portfolio_analysis(tickers_list, start_date, end_date, ipopt_executable):
     print("Starting full portfolio analysis...")
@@ -240,20 +191,27 @@ def perform_full_portfolio_analysis(tickers_list, start_date, end_date, ipopt_ex
 
     return optimize_and_plot_portfolio(df_returns, ipopt_executable)
 
-
 print("Defined `perform_full_portfolio_analysis` function.")
 
 # ------------------------------------------------------------
-# Run full workflow
+# Run workflow
 # ------------------------------------------------------------
+ipopt_executable = "/content/bin/ipopt"  # For Colab
+df_returns = calculate_monthly_returns(tickers_list, start, end)
+
+if df_returns is not None:
+    df_results, df_allocations = optimize_and_plot_portfolio(df_returns, ipopt_executable)
+    print("Functions called successfully and plots generated.")
+else:
+    print("No valid return data available; skipping optimization.")
+
+# Full workflow example
 my_tickers = ['GE','KO','NVDA']
 my_start_date = '2020-01-01'
 my_end_date = '2024-01-01'
-my_ipopt_executable = ipopt_executable
 
-from IPython.display import display
 final_df_results, final_df_allocations = perform_full_portfolio_analysis(
-    my_tickers, my_start_date, my_end_date, my_ipopt_executable
+    my_tickers, my_start_date, my_end_date, ipopt_executable
 )
 
 if final_df_results is not None and final_df_allocations is not None:
