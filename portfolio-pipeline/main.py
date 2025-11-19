@@ -14,12 +14,11 @@ import subprocess
 import argparse
 import os
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--output_dir", type=str, required=True)
-args = parser.parse_args()
+output_path = "/output/result.txt"
 
-OUTPUT_DIR = args.output_dir
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+with open(output_path, "w") as f:
+    f.write("This is my output.")
+
 
 
 # ------------------------------------------------------------
@@ -144,7 +143,6 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     plt.ylabel("Expected Return")
     plt.grid(True)
     display(plt.gcf())
-    plt.savefig(os.path.join(OUTPUT_DIR, "my_plot1.png"))
     plt.close()
 
     df_allocations = pd.DataFrame(param_analysis).T
@@ -162,7 +160,6 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     plt.grid(True)
     plt.tight_layout()
     display(plt.gcf())
-    plt.savefig(os.path.join(OUTPUT_DIR, "my_plot2.png"))
     plt.close()
 
     print("Portfolio optimization and plotting complete.")
