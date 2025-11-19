@@ -11,15 +11,15 @@ import os
 import sys
 import subprocess
 
-import argparse
+import sys
 import os
 
-output_path = "/output/result.txt"
+OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-with open(output_path, "w") as f:
-    f.write("This is my output.")
-
-
+log_file = open(os.path.join(OUTPUT_DIR, "console_output.txt"), "w")
+sys.stdout = log_file
+sys.stderr = log_file
 
 # ------------------------------------------------------------
 # Ensure plots render correctly in Colab
@@ -230,3 +230,6 @@ if final_df_results is not None and final_df_allocations is not None:
     display(final_df_allocations.head())
 else:
     print("Portfolio analysis did not produce results.")
+
+log_file.close()
+
