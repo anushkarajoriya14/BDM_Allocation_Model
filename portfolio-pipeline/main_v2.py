@@ -19,6 +19,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 def load_sp500():
     url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
     df = pd.read_csv(url)
+    df = df.rename(columns={'GICS Sector': 'Sector'})
     return df  # columns: Symbol, Name, Sector
 
 
