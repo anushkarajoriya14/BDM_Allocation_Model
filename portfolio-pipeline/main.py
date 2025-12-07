@@ -14,12 +14,6 @@ import subprocess
 import sys
 import os
 
-OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-log_file = open(os.path.join(OUTPUT_DIR, "console_output.txt"), "w")
-sys.stdout = log_file
-sys.stderr = log_file
 
 # ------------------------------------------------------------
 # Ensure plots render correctly in Colab
@@ -230,6 +224,4 @@ if final_df_results is not None and final_df_allocations is not None:
     display(final_df_allocations.head())
 else:
     print("Portfolio analysis did not produce results.")
-
-log_file.close()
 
