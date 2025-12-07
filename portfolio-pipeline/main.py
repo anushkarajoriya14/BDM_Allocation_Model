@@ -67,7 +67,7 @@ def calculate_monthly_returns(tickers_list, start_date, end_date):
 # ------------------------------------------------------------
 # Optimization and plotting
 # ------------------------------------------------------------
-def optimize_and_plot_portfolio(df_returns, ipopt_executable):
+def optimize_and_plot_portfolio(df_returns, ipopt_executable, plot_prefix=""):
     m = ConcreteModel()
     assets = df_returns.columns.tolist()
     m.Assets = Set(initialize=assets)
@@ -132,6 +132,7 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     plt.xlabel("Portfolio Risk (Variance)")
     plt.ylabel("Expected Return")
     plt.grid(True)
+    plt.savefig(f"output/{plot_prefix}efficient_frontier.png")
     display(plt.gcf())
     plt.close()
 
@@ -149,6 +150,7 @@ def optimize_and_plot_portfolio(df_returns, ipopt_executable):
     plt.legend(title="Asset", bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(f"output/{plot_prefix}asset_allocation.png")
     display(plt.gcf())
     plt.close()
 
@@ -160,7 +162,7 @@ print("Finished defining `optimize_and_plot_portfolio` function.")
 # ------------------------------------------------------------
 # Perform full portfolio analysis
 # ------------------------------------------------------------
-def perform_full_portfolio_analysis(tickers_list, start_date, end_date, ipopt_executable):
+def perform_full_portfolio_analysis(tickers_list, start_date, end_date, ipopt_executable, plot_prefix=""):
     print("Starting full portfolio analysis...")
     dow_prices = {}
     for t in tickers_list:
@@ -189,7 +191,7 @@ def perform_full_portfolio_analysis(tickers_list, start_date, end_date, ipopt_ex
         print("No valid return data.")
         return None, None
 
-    return optimize_and_plot_portfolio(df_returns, ipopt_executable)
+    return optimize_and_plot_portfolio(df_returns, ipopt_executable, plot_prefix=plot_prefix)
 
 print("Defined `perform_full_portfolio_analysis` function.")
 
@@ -200,7 +202,7 @@ ipopt_executable = "/content/bin/ipopt"  # For Colab
 df_returns = calculate_monthly_returns(tickers_list, start, end)
 
 if df_returns is not None:
-    df_results, df_allocations = optimize_and_plot_portfolio(df_returns, ipopt_executable)
+    df_results, df_allocations = optimize_and_plot_portfolio(df_returns, ipopt_executable, plot_prefix="initial_")
     print("Functions called successfully and plots generated.")
 else:
     print("No valid return data available; skipping optimization.")
@@ -211,7 +213,7 @@ my_start_date = '2020-01-01'
 my_end_date = '2024-01-01'
 
 final_df_results, final_df_allocations = perform_full_portfolio_analysis(
-    my_tickers, my_start_date, my_end_date, ipopt_executable
+    my_tickers, my_start_date, my_end_date, ipopt_executable, plot_prefix="final_"
 )
 
 if final_df_results is not None and final_df_allocations is not None:
