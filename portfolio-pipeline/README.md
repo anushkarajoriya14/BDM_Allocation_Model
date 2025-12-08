@@ -78,16 +78,23 @@ ln -sf /content/bin/bonmin /usr/bin/bonmin
 
 This ensures Pyomo can detect the solver.
 
-🚀 13. Run main_v2.py with Bonmin
+13. Run main_v2.py with Bonmin
 %run main_v2.py
 
 
 Final Notebook Outputs 
+
 The notebook produces (Files Stored in output/):
+
 Initial Asset Allocation
+
 Final Asset Allocation
+
 Initial Efficient Frontier
+
 Final Efficient Frontier
+
 result.csv
+
 portfolio_v2_weights
  
